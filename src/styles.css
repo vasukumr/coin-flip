@@ -237,6 +237,7 @@ body {
 .game-card > h3,
 .game-card > .bet-label,
 .game-card > .bet-input-row,
+.game-card > .bet-config-hint,
 .game-card > .balance-inline,
 .game-card > .game-actions,
 .game-card > .status,
@@ -339,6 +340,13 @@ body.dark .coin-face {
   color: var(--btn-text);
   font-size: 2rem;
   font-weight: 800;
+}
+
+.bet-config-hint {
+  margin: 6px auto 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .balance-label {
@@ -667,6 +675,10 @@ td {
   .status,
   .mini {
     font-size: 0.85rem;
+  }
+
+  .bet-config-hint {
+    font-size: 0.78rem;
   }
 
   th,

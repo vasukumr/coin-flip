@@ -8,7 +8,8 @@ const CURRENCY_SYMBOL = APP_CONFIG.currencySymbol;
 const DEFAULT_THEME = APP_CONFIG.defaultTheme === "dark" ? "dark" : "light";
 const FLIP_ANIMATION_MS = APP_CONFIG.flipAnimationMs;
 const RESULT_REVEAL_MS = APP_CONFIG.resultRevealMs;
-const MIN_BET = 1;
+const MIN_BET = Math.max(0.01, toMoneyPrecision(Number(APP_CONFIG.minBetAmount ?? 1)));
+const BET_STEP = Math.max(0.01, toMoneyPrecision(Number(APP_CONFIG.betStepAmount ?? 1)));
 
 const SAFE_BIAS_PERCENT = Math.min(100, Math.max(0, Number(APP_CONFIG.biasPercent ?? 60)));
 const BIAS_RATE = SAFE_BIAS_PERCENT / 100;
@@ -22,6 +23,24 @@ const BIAS_PERCENT_LABEL = Number.isInteger(SAFE_BIAS_PERCENT)
 
 function toMoneyPrecision(value) {
   return Math.round(value * 100) / 100;
+}
+
+function isStepAligned(value) {
+  const steps = (value - MIN_BET) / BET_STEP;
+  return Math.abs(steps - Math.round(steps)) < 1e-8;
+}
+
+function normalizeBetToStep(value, maxBalance) {
+  const safeBalance = toMoneyPrecision(Math.max(0, maxBalance));
+
+  if (safeBalance <= MIN_BET) {
+    return safeBalance;
+  }
+
+  const clamped = Math.max(MIN_BET, Math.min(value, safeBalance));
+  const stepped = toMoneyPrecision(MIN_BET + Math.max(0, Math.round((clamped - MIN_BET) / BET_STEP)) * BET_STEP);
+
+  return toMoneyPrecision(Math.min(safeBalance, Math.max(MIN_BET, stepped)));
 }
 
 function formatMoney(value) {
@@ -136,9 +155,23 @@ export default function App() {
     return Number.isFinite(parsed) ? parsed : 0;
   }, [bet]);
 
+  const isBetStepAligned = useMemo(() => {
+    if (betAmount < MIN_BET) {
+      return false;
+    }
+
+    return isStepAligned(betAmount);
+  }, [betAmount]);
+
   const canFlip = useMemo(
-    () => view === "game" && !isFlipping && Boolean(selectedSide) && betAmount >= MIN_BET && betAmount <= balance,
-    [view, isFlipping, selectedSide, betAmount, balance]
+    () =>
+      view === "game" &&
+      !isFlipping &&
+      Boolean(selectedSide) &&
+      betAmount >= MIN_BET &&
+      betAmount <= balance &&
+      isBetStepAligned,
+    [view, isFlipping, selectedSide, betAmount, balance, isBetStepAligned]
   );
 
   function resetGame() {
@@ -172,8 +205,7 @@ export default function App() {
   }
 
   function adjustBet(next) {
-    const clamped = Math.max(MIN_BET, Math.min(next, balance));
-    const normalized = toMoneyPrecision(clamped);
+    const normalized = normalizeBetToStep(next, balance);
     if (!Number.isFinite(normalized)) {
       return;
     }
@@ -211,6 +243,12 @@ export default function App() {
 
     if (betAmount > balance) {
       setStatus("Bet cannot exceed your balance.");
+      setStatusType("loss");
+      return;
+    }
+
+    if (!isBetStepAligned) {
+      setStatus(`Bet must be in multiples of ${formatMoney(BET_STEP)}.`);
       setStatusType("loss");
       return;
     }
@@ -280,7 +318,7 @@ export default function App() {
           return;
         }
 
-        const nextBet = toMoneyPrecision(Math.min(roundBet, Math.max(MIN_BET, nextBalance)));
+        const nextBet = normalizeBetToStep(Math.min(roundBet, nextBalance), nextBalance);
         setBet(String(nextBet));
       }, RESULT_REVEAL_MS);
     }, FLIP_ANIMATION_MS);
@@ -419,7 +457,9 @@ export default function App() {
               <li>Starting balance is {formatMoney(START_BALANCE)}.</li>
               <li>{BIAS_SIDE_LABEL} lands {BIAS_PERCENT_LABEL}% of the time on every flip.</li>
               <li>You choose Heads or Tails before each bet.</li>
-              <li>You can enter decimal bets, minimum {formatMoney(MIN_BET)}.</li>
+              <li>
+                You can enter decimal bets, minimum {formatMoney(MIN_BET)} and only in multiples of {formatMoney(BET_STEP)}.
+              </li>
               <li>If your pick matches the flip result, you win your bet amount.</li>
               <li>If your pick is wrong, you lose your bet amount.</li>
               <li>Game ends at {formatMoney(0)}, target {formatMoney(TARGET_BALANCE)}, or when time runs out.</li>
@@ -459,7 +499,7 @@ export default function App() {
                 Your bet:
               </label>
               <div className="bet-input-row">
-                <button type="button" className="step-btn" onClick={() => adjustBet(betAmount - 1)}>
+                <button type="button" className="step-btn" onClick={() => adjustBet(betAmount - BET_STEP)}>
                   -
                 </button>
                 <input
@@ -468,7 +508,7 @@ export default function App() {
                   type="number"
                   min={MIN_BET}
                   max={toMoneyPrecision(balance)}
-                  step="0.1"
+                  step={BET_STEP}
                   inputMode="decimal"
                   value={bet}
                   placeholder="Type bet"
@@ -490,11 +530,26 @@ export default function App() {
 
                     setBet(raw);
                   }}
+                  onBlur={() => {
+                    if (bet === "") {
+                      return;
+                    }
+
+                    const parsed = Number(bet);
+                    if (!Number.isFinite(parsed)) {
+                      return;
+                    }
+
+                    adjustBet(parsed);
+                  }}
                 />
-                <button type="button" className="step-btn" onClick={() => adjustBet(betAmount + 1)}>
+                <button type="button" className="step-btn" onClick={() => adjustBet(betAmount + BET_STEP)}>
                   +
                 </button>
               </div>
+              <p className="bet-config-hint">
+                Minimum {formatMoney(MIN_BET)} | +/- Step {formatMoney(BET_STEP)}
+              </p>
 
               <div className="balance-inline">
                 <h4 className="balance-label">Balance:</h4>

@@ -19,6 +19,8 @@ All main settings are in src/config.js:
 
 - currencySymbol: Display currency symbol.
 - totalBalance: Starting balance.
+- minBetAmount: Minimum allowed bet.
+- betStepAmount: Increment/decrement amount for +/- and valid bet multiples.
 - defaultTheme: "light" or "dark".
 - timeMinutes: Round timer duration.
 - biasPercent: Probability percentage for the biased side.
@@ -32,6 +34,8 @@ Example:
 export const APP_CONFIG = {
   currencySymbol: "$",
   totalBalance: 25,
+  minBetAmount: 1,
+  betStepAmount: 1,
   defaultTheme: "light",
   timeMinutes: 5,
   biasPercent: 60,
