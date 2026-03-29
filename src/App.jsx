@@ -61,6 +61,7 @@ function getInsight({ balance, rounds, totalBet, hitTarget }) {
 
 export default function App() {
   const [view, setView] = useState("landing");
+  const [viewBeforeAbout, setViewBeforeAbout] = useState("landing");
   const [theme, setTheme] = useState(() => localStorage.getItem("trap-theme") || DEFAULT_THEME);
 
   const [balance, setBalance] = useState(START_BALANCE);
@@ -86,6 +87,7 @@ export default function App() {
   const [modalMessage, setModalMessage] = useState("Flipping your coin...");
   const [shareFeedback, setShareFeedback] = useState("");
   const timerRef = useRef(null);
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     document.body.classList.toggle("dark", theme === "dark");
@@ -348,6 +350,23 @@ export default function App() {
     }
   }
 
+  function toggleAboutView() {
+    if (view === "about") {
+      setView(viewBeforeAbout || "landing");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    setViewBeforeAbout(view);
+    setView("about");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function goBackFromAbout() {
+    setView(viewBeforeAbout || "landing");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
     <>
       <div className="app-bg" />
@@ -366,8 +385,13 @@ export default function App() {
             >
               {theme === "dark" ? "☀" : "🌙"}
             </button>
-            <button type="button" className="icon-btn menu-icon-btn" aria-label="Menu">
-              ≡
+            <button
+              type="button"
+              className="icon-btn menu-icon-btn"
+              aria-label={view === "about" ? "Close about" : "Open about"}
+              onClick={toggleAboutView}
+            >
+              {view === "about" ? "×" : "≡"}
             </button>
           </div>
         </header>
@@ -383,6 +407,27 @@ export default function App() {
             <button className="primary-btn" type="button" onClick={resetGame}>
               Start Playing
             </button>
+            <p className="copyright">© {currentYear} Vasu Kumar</p>
+          </section>
+        )}
+
+        {view === "about" && (
+          <section className="card panel about-panel">
+            <p className="eyebrow">About</p>
+            <h2>Game Rules</h2>
+            <ol className="rules-list">
+              <li>Starting balance is {formatMoney(START_BALANCE)}.</li>
+              <li>{BIAS_SIDE_LABEL} lands {BIAS_PERCENT_LABEL}% of the time on every flip.</li>
+              <li>You choose Heads or Tails before each bet.</li>
+              <li>You can enter decimal bets, minimum {formatMoney(MIN_BET)}.</li>
+              <li>If your pick matches the flip result, you win your bet amount.</li>
+              <li>If your pick is wrong, you lose your bet amount.</li>
+              <li>Game ends at {formatMoney(0)}, target {formatMoney(TARGET_BALANCE)}, or when time runs out.</li>
+            </ol>
+            <button type="button" className="primary-btn" onClick={goBackFromAbout}>
+              Back
+            </button>
+            <p className="copyright">© {currentYear} Vasu Kumar</p>
           </section>
         )}
 
@@ -544,6 +589,7 @@ export default function App() {
               </button>
             </div>
             {shareFeedback && <p className="share-feedback">{shareFeedback}</p>}
+            <p className="copyright">© {currentYear} Vasu Kumar</p>
           </section>
         )}
       </main>

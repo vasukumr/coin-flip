@@ -135,7 +135,8 @@ body {
 }
 
 .landing-panel,
-.result-panel {
+.result-panel,
+.about-panel {
   width: 100%;
   max-width: 920px;
   margin: 0 auto;
@@ -166,6 +167,23 @@ body {
   background: color-mix(in srgb, var(--brand-soft) 10%, var(--card));
   color: var(--text);
   font-size: 0.92rem;
+}
+
+.rules-list {
+  margin: 8px 0 14px;
+  padding-left: 20px;
+  color: var(--text);
+}
+
+.rules-list li {
+  margin: 6px 0;
+}
+
+.copyright {
+  margin: 12px 2px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .primary-btn,
