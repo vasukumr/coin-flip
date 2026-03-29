@@ -72,4 +72,4 @@ When Git auto-deploy is connected to the GitHub repository, pushing commits to t
 
 ## Copyright
 
-Copyright (c) Vasu Kumar
+Copyright (c) Vasu & Navaneet

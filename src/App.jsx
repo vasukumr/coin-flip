@@ -445,7 +445,7 @@ export default function App() {
             <button className="primary-btn" type="button" onClick={resetGame}>
               Start Playing
             </button>
-            <p className="copyright">© {currentYear} Vasu Kumar</p>
+            <p className="copyright">© {currentYear} Vasu & Navaneet</p>
           </section>
         )}
 
@@ -467,7 +467,7 @@ export default function App() {
             <button type="button" className="primary-btn" onClick={goBackFromAbout}>
               Back
             </button>
-            <p className="copyright">© {currentYear} Vasu Kumar</p>
+            <p className="copyright">© {currentYear} Vasu & Navaneet</p>
           </section>
         )}
 
@@ -644,7 +644,7 @@ export default function App() {
               </button>
             </div>
             {shareFeedback && <p className="share-feedback">{shareFeedback}</p>}
-            <p className="copyright">© {currentYear} Vasu Kumar</p>
+            <p className="copyright">© {currentYear} Vasu & Navaneet</p>
           </section>
         )}
       </main>
